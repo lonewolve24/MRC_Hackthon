@@ -5,7 +5,7 @@ from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="X-Ray Analysis API",
