@@ -5,6 +5,7 @@ from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
 
+
 # Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
