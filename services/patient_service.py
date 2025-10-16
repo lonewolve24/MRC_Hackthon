@@ -21,11 +21,6 @@ class PatientService:
         self.upload_dir = Path("uploads")
         self.upload_dir.mkdir(exist_ok=True)
 
-
-        print(f"DEBUG - AWS_ACCESS_KEY_ID: {os.getenv('AWS_ACCESS_KEY_ID')}")
-        print(f"DEBUG - AWS_S3_ENDPOINT: {os.getenv('AWS_S3_ENDPOINT')}")
-        print(f"DEBUG - S3_BUCKET_NAME: {os.getenv('S3_BUCKET_NAME')}")
-        print(f"DEBUG - DEBUG: {os.getenv('DEBUG')}")
         
         self.s3_client = boto3.client(
             's3',
