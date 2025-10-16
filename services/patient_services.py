@@ -1,6 +1,4 @@
-import boto3
 from sqlalchemy.orm import Session
-from botocore.exceptions import ClientError
 from db.models import Patient, Xray
 from db.schema import PatientCreate
 from fastapi import HTTPException, UploadFile
@@ -20,23 +18,13 @@ class PatientService:
     def __init__(self):
         self.upload_dir = Path("uploads")
         self.upload_dir.mkdir(exist_ok=True)
-
-
-        print(f"DEBUG - AWS_ACCESS_KEY_ID: {os.getenv('AWS_ACCESS_KEY_ID')}")
-        print(f"DEBUG - AWS_S3_ENDPOINT: {os.getenv('AWS_S3_ENDPOINT')}")
-        print(f"DEBUG - S3_BUCKET_NAME: {os.getenv('S3_BUCKET_NAME')}")
-        print(f"DEBUG - DEBUG: {os.getenv('DEBUG')}")
         
-        self.s3_client = boto3.client(
-            's3',
-            endpoint_url=os.getenv('AWS_S3_ENDPOINT'),
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            region_name=os.getenv('AWS_REGION', 'eu-west-1')
-        )
-        self.bucket_name = os.getenv('S3_BUCKET_NAME')
-        
-        # Check if in debug mode
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_KEY")
+        self.supabase = None
+        if supabase_url and supabase_key:
+            self.supabase = create_client(supabase_url, supabase_key)
+
         self.debug_mode = os.getenv("DEBUG") == 'True'
 
     def _validate_file(self, filename: str) -> bool:
@@ -93,27 +81,20 @@ class PatientService:
             content = await file.read()
             
             # Choose storage based on DEBUG mode
-            if self.debug_mode and self.s3_client and self.bucket_name:
-                # Upload to AWS S3 (Cloud - for production)
-                s3_key = f"xrays/{patient_id}/{file.filename}"
+            if self.debug_mode and self.supabase:
+                # Upload to Supabase (Cloud - for production)
+                file_key = f"xrays/{patient_id}/{file.filename}"
                 
                 try:
-                    self.s3_client.put_object(
-                        Bucket=self.bucket_name,
-                        Key=s3_key,
-                        Body=content,
-                        ContentType=file.content_type
+                    self.supabase.storage.from_("X-ray-images").upload(
+                        file_key,
+                        content
                     )
-                    
-                    # Generate public URL
-                    file_url = f"https://{self.bucket_name}.s3.amazonaws.com/{s3_key}"
+                    # Get public URL
+                    file_url = self.supabase.storage.from_("X-ray-images").get_public_url(file_key)
                     image_path = file_url
-                    
-                except ClientError as e:
-                    raise HTTPException(
-                        status_code=500,
-                        detail=f"S3 upload failed: {str(e)}"
-                    )
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Cloud upload failed: {str(e)}")
             else:
                 # Save locally (Development only)
                 file_path = self.upload_dir / f"{patient_id}_{file.filename}"

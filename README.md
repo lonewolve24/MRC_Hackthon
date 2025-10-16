@@ -52,29 +52,15 @@ Access the API:
 
 ## File Structure
 MRC_Hackthon/
-├── main.py # FastAPI app entry point
-├── env.example # Environment template
-├── .env # Environment variables (git-ignored)
-├── .gitignore # Git ignore rules
-│
-├── api/
-│ ├── init.py
-│ └── routes.py # All API endpoints
-│
-├── services/
-│ ├── init.py
-│ └── patient_service.py # Business logic & file handling
-│
-├── db/
-│ ├── init.py
-│ ├── db.py # Database connection
-│ ├── models.py # Database models
-│ └── schema.py # API schemas
-│
-├── uploads/ # X-ray images storage
-│ └── .gitkeep
-│
-└── venv/ # Virtual environment
+├── main.py (FastAPI app)
+├── api/routes.py (endpoints)
+├── services/patient_service.py (business logic)
+├── db/models.py (database models)
+├── db/schema.py (API schemas)
+├── db/db.py (database setup)
+├── uploads/ (X-ray images)
+├── .env (environment variables)
+└── venv/ (virtual environment)
 
 
 ---
